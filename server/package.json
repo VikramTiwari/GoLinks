@@ -1,0 +1,19 @@
+{
+  "name": "go/",
+  "version": "1.0.0",
+  "description": "Server for go/ which returns mapping for go/",
+  "main": "index.js",
+  "scripts": {
+    "start": "http-server --cors=* ./"
+  },
+  "keywords": [
+    "go/",
+    "mapping",
+    "server"
+  ],
+  "author": "Vikram Tiwari",
+  "license": "MIT",
+  "dependencies": {
+    "http-server": "^14.1.0"
+  }
+}
