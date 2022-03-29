@@ -4,7 +4,7 @@
 
 ### Get started
 
-- Install the extension from the chrome webstore.
+- Install the extension from the [chrome webstore](https://chrome.google.com/webstore/detail/go/bfmaacheolcnmehidehnkdpkafmmjjld).
 - Type `go` and press tab. This will replace chrome's search bar with GoLinks search bar.
 - Now type `//<API_ENDPOINT>` to point to the API endpoint to be used.
 
@@ -15,7 +15,7 @@
 
 ## How to get the API endpoint
 
-The extension doesn't care how the API is hosted as long as it provides a single endpoint to get all the mappings. Take a look at the sample implementation of this in the server directory.
+The extension doesn't care how the API is hosted as long as it provides a single endpoint to get all the mappings. Take a look at the sample implementation of this in the [golinks-server project](https://github.com/VikramTiwari/golinks-server).
 
 ### Why is JSON endpoint not a part of this project?
 
