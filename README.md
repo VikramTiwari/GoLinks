@@ -2,6 +2,14 @@
 
 ## How to use
 
+### Normal Usage
+
+- In the address bar, type the `go/<ID>` that you want to go to and you will be redirect to the correct mapping.
+- For example: You can type `go/donate` to go to https://github.com/sponsors/VikramTiwari page to sponsor the author.
+- NOTE: Chrome tries to use your input to search. Remember to select the Web option rather than Search option.
+  - ✅ Correct: ![Web Option](images/web-input.png "Web Option")
+  - ❌ Incorrect: ![Search Option](images/search-input.png "Search Option")
+
 ### Get started
 
 - Install the extension from the [chrome webstore](https://chrome.google.com/webstore/detail/go/bfmaacheolcnmehidehnkdpkafmmjjld).
