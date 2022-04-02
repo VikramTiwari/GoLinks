@@ -18,5 +18,6 @@
   "background": {
     "service_worker": "worker.js"
   },
-  "permissions": ["storage"]
+  "host_permissions": ["*://go/*"],
+  "permissions": ["alarms", "storage", "webRequest"]
 }

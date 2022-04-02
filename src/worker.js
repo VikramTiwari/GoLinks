@@ -77,7 +77,45 @@ function onInputEntered(input) {
   chrome.tabs.update(undefined, { url });
 }
 
+/**
+ * This function uses the go/<ID> type URLs to get the URL mapping for ID
+ * and load the URL in the current tab
+ *
+ * @param {URL} goURL URL to go to
+ * @param {Boolean} newTab whether to reload the current tab or open a new tab
+ */
+function redirectURLInput(goURL, newTab = false) {
+  console.log(`redirectURLInput`, goURL);
+  // split the URL to get the id
+  const id = goURL.split(`http://go/`)[1];
+  // get URL from the mapping
+  const url = mapping[id] ?? mapping.help;
+
+  if (!newTab) {
+    // find currently active tab and change the URL to the new one
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.tabs.update(tabs[0].id, { url });
+    });
+  }
+}
+
 // add listener for input changes
 chrome.omnibox.onInputEntered.addListener(onInputEntered);
 // add listener for updating mapping
 chrome.action.onClicked.addListener(() => updateMapping(apiURL));
+
+// add listener for direct http://go/ links
+chrome.webRequest.onBeforeRequest.addListener(
+  (details) => redirectURLInput(details.url),
+  { urls: ["*://go/*"] },
+  []
+);
+
+// add listener for alarms to update mapping
+chrome.alarms.onAlarm.addListener((alarm) => {
+  console.log(`onAlarm`, alarm);
+  updateMapping();
+});
+
+// start the update mapping alarm, every 60 minutes
+chrome.alarms.create("updateMapping", { periodInMinutes: 60, when: 0 });
