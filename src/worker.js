@@ -8,8 +8,8 @@ let mapping = {
   help: `https://github.com/VikramTiwari/SlashLinks`,
 };
 
-// get all saved data from chrome storage on each startup
-// this ensures that when service worker goes to sleep, we will still retain the configurations
+// Get all saved data from chrome storage on each startup
+// This ensures that when service worker goes to sleep, we will still retain the configurations
 chrome.storage.sync.get(null, (result) => {
   console.log(`chrome.storage.sync result`, result);
   apiURL = result?.importURL ?? apiURL;
@@ -45,8 +45,42 @@ async function updateMapping(url = apiURL) {
 
     // keep the mapping in chrome storage so that it can be used across sessions
     chrome.storage.sync.set({ mapping, importURL: apiURL });
+    return true;
   }
-  return;
+  return false;
+}
+
+/**
+ * This function converts the user input ID to a URL
+ * 
+ * Extra conditions:
+ * - If ID is a URL override (starts with // and is URL) then we update API URL to that
+ * - If ID is // then we retrun the API URL which will show all the mappings
+ * 
+ * @param {String} id 
+ * @returns {URL} URL
+ */
+function idToURL(id) {
+  // help URL is default for all missing ids
+  let url = mapping[id] ?? mapping.help;
+  // shortcut to see all the shortcuts
+  if (id === `//`) {
+    url = apiURL;
+  } else if (id.startsWith(`//`)) {
+    // if the id starts with //, then user might be trying to set mapping
+    const possibleURL = id.replace(`//`, ``); // remove the //, only the first one
+    // if the id is a valid URL, then update mapping
+    if (await updateMapping(possibleURL)) {
+      // on success, take user to the new URL where they can see the new mapping
+      return url;
+    } else {
+      // on failure, take user to the help page
+      return mapping.help;
+    }
+  }
+  // this should always be present
+  console.log(`mapping: "${id}" -> "${url}"`);
+  return url;
 }
 
 /**
@@ -54,25 +88,11 @@ async function updateMapping(url = apiURL) {
  * Once it find a URL, it loads that in the current page.
  * If no URL is found, we take user to help page
  *
- * @param {String} input user input in the omnibox
+ * @param {String} id user input in the omnibox
  */
-function onInputEntered(input) {
+function onInputEntered(id) {
   // help URL is default for all missing inputs
-  let url = mapping[input] ?? mapping.help;
-
-  // shortcut to see all the shortcuts
-  if (input === `//`) {
-    url = apiURL;
-  } else if (input.startsWith(`//`)) {
-    // if the input starts with //, then user might be trying to set mapping
-    const possibleURL = input.replace(`//`, ``); // remove the //, only the first one
-    // if the input is a valid URL, then update mapping
-    updateMapping(possibleURL);
-    return;
-  }
-
-  // this should always be present
-  console.log(`mapping: "${input}" -> "${url}"`);
+  let url = idToURL(id);
   // undefined here allows the current tab to be updated
   chrome.tabs.update(undefined, { url });
 }
@@ -87,35 +107,32 @@ function onInputEntered(input) {
 function redirectURLInput(goURL, newTab = false) {
   console.log(`redirectURLInput`, goURL);
   // split the URL to get the id
-  const id = goURL.split(`http://go/`)[1];
+  const id = goURL.startsWith(`https://`) ? goURL.split(`https://go/`)[1] : goURL.split(`http://go/`)[1];
   // get URL from the mapping
-  const url = mapping[id] ?? mapping.help;
-
+  const url = idToURL(id);
   if (!newTab) {
     // find currently active tab and change the URL to the new one
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      chrome.tabs.update(tabs[0].id, { url });
-    });
+    chrome.tabs.update(undefined, { url });
   }
 }
 
-// add listener for input changes
+// Add listener for input changes
 chrome.omnibox.onInputEntered.addListener(onInputEntered);
-// add listener for updating mapping
+// Add listener for updating mapping
 chrome.action.onClicked.addListener(() => updateMapping(apiURL));
 
-// add listener for direct http://go/ links
+// Add listener for direct http://go/ links
 chrome.webRequest.onBeforeRequest.addListener(
   (details) => redirectURLInput(details.url),
   { urls: ["*://go/*"] },
   []
 );
 
-// add listener for alarms to update mapping
+// Add listener for alarms to update mapping
 chrome.alarms.onAlarm.addListener((alarm) => {
   console.log(`onAlarm`, alarm);
   updateMapping();
 });
 
-// start the update mapping alarm, every 60 minutes
+// Start the update mapping alarm, every 60 minutes
 chrome.alarms.create("updateMapping", { periodInMinutes: 60, when: 0 });
