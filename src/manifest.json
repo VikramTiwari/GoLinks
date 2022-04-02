@@ -3,7 +3,7 @@
   "short_name": "go/",
   "description": "go/ to supercharge short links for your team. Share easily!",
   "manifest_version": 3,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "omnibox": {
     "keyword": "go"
   },
