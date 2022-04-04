@@ -52,15 +52,15 @@ async function updateMapping(url = apiURL) {
 
 /**
  * This function converts the user input ID to a URL
- * 
+ *
  * Extra conditions:
  * - If ID is a URL override (starts with // and is URL) then we update API URL to that
  * - If ID is // then we retrun the API URL which will show all the mappings
- * 
- * @param {String} id 
+ *
+ * @param {String} id
  * @returns {URL} URL
  */
-function idToURL(id) {
+async function idToURL(id) {
   // help URL is default for all missing ids
   let url = mapping[id] ?? mapping.help;
   // shortcut to see all the shortcuts
@@ -107,7 +107,9 @@ function onInputEntered(id) {
 function redirectURLInput(goURL, newTab = false) {
   console.log(`redirectURLInput`, goURL);
   // split the URL to get the id
-  const id = goURL.startsWith(`https://`) ? goURL.split(`https://go/`)[1] : goURL.split(`http://go/`)[1];
+  const id = goURL.startsWith(`https://`)
+    ? goURL.split(`https://go/`)[1]
+    : goURL.split(`http://go/`)[1];
   // get URL from the mapping
   const url = idToURL(id);
   if (!newTab) {

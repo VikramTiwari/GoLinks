@@ -1,23 +1,29 @@
 {
-  "name": "go/",
-  "short_name": "go/",
-  "description": "go/ to supercharge short links for your team. Share easily!",
-  "manifest_version": 3,
-  "version": "0.0.2",
-  "omnibox": {
-    "keyword": "go"
-  },
-  "action": {
-    "default_icon": {
-      "16": "icons/16.png",
-      "32": "icons/32.png",
-      "128": "icons/128.png"
-    },
-    "default_title": "Update links"
-  },
-  "background": {
-    "service_worker": "worker.js"
-  },
-  "host_permissions": ["*://go/*"],
-  "permissions": ["alarms", "storage", "webRequest"]
+	"name": "go/ Links - Free",
+	"short_name": "go/ Links - Free",
+	"description": "go/ Links to supercharge short links for your team. Share away!",
+	"manifest_version": 3,
+	"version": "0.0.3",
+	"omnibox": {
+		"keyword": "go"
+	},
+	"action": {
+		"default_icon": {
+			"16": "icons/16.png",
+			"32": "icons/32.png",
+			"128": "icons/128.png"
+		},
+		"default_title": "Update links"
+	},
+	"background": {
+		"service_worker": "worker.js"
+	},
+	"host_permissions": [
+		"*://go/*"
+	],
+	"permissions": [
+		"alarms",
+		"storage",
+		"webRequest"
+	]
 }
