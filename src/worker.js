@@ -1,30 +1,19 @@
-// This will get replaced when user adds their own custom import URL
-let apiURL = `http://localhost:8080/sample.json`;
-
 // The mapping imported from the importURL wil get appended to this
 // NOTE: These will be replaced with your mapping if your mapping is using same keys
 let mapping = {
   donate: `https://github.com/sponsors/VikramTiwari`,
-  help: `https://github.com/VikramTiwari/SlashLinks`,
+  "?": `https://github.com/VikramTiwari/GoLinks`,
 };
 
-// Get all saved data from chrome storage on each startup
-// This ensures that when service worker goes to sleep, we will still retain the configurations
-chrome.storage.sync.get(null, (result) => {
-  console.log(`chrome.storage.sync result`, result);
-  apiURL = result?.importURL ?? apiURL;
-  mapping = { ...mapping, ...(result?.mapping ?? {}) };
-});
-
 /**
- * This function tries to get the URL mapping from the specified URL
- *
- * @param {String} url URL to get mapping from. This is usually the importURL
- * @returns {Object} mapping object
+ * This function gets the latest value for the importURL and updates the mapping
  */
-async function updateMapping(url = apiURL) {
+async function updateMapping() {
+  const result = await chrome.storage.sync.get([`importURL`]);
+  const importURL = result?.importURL;
+
   // fetch the mapping from the specified URL
-  const response = await fetch(url);
+  const response = await fetch(importURL);
   let json = {};
 
   try {
@@ -38,16 +27,12 @@ async function updateMapping(url = apiURL) {
 
   // if mapping is found, update mapping in include this mapping
   if (json && Object.keys(json).length > 0) {
-    // overwrite mapping with new mapping, so it will preserve anyone not overwritten
+    // overwrite mapping with new mapping, so it will preserve anything not overwritten
     mapping = { ...mapping, ...json };
-    // update the importURL to the new URL
-    apiURL = url;
 
     // keep the mapping in chrome storage so that it can be used across sessions
-    chrome.storage.sync.set({ mapping, importURL: apiURL });
-    return true;
+    chrome.storage.local.set({ mapping });
   }
-  return false;
 }
 
 /**
@@ -61,22 +46,15 @@ async function updateMapping(url = apiURL) {
  * @returns {URL} URL
  */
 async function idToURL(id) {
+  const result = chrome.storage.local.get([`mapping`]);
+  mapping = { ...mapping, ...result?.mapping };
+  // console.log(`mapping`, mapping);
+
   // help URL is default for all missing ids
   let url = mapping[id] ?? mapping.help;
   // shortcut to see all the shortcuts
   if (id === `//`) {
     url = apiURL;
-  } else if (id.startsWith(`//`)) {
-    // if the id starts with //, then user might be trying to set mapping
-    const possibleURL = id.replace(`//`, ``); // remove the //, only the first one
-    // if the id is a valid URL, then update mapping
-    if (await updateMapping(possibleURL)) {
-      // on success, take user to the new URL where they can see the new mapping
-      return url;
-    } else {
-      // on failure, take user to the help page
-      return mapping.help;
-    }
   }
   // this should always be present
   console.log(`mapping: "${id}" -> "${url}"`);
@@ -90,9 +68,9 @@ async function idToURL(id) {
  *
  * @param {String} id user input in the omnibox
  */
-function onInputEntered(id) {
+async function onInputEntered(id) {
   // help URL is default for all missing inputs
-  let url = idToURL(id);
+  let url = await idToURL(id);
   // undefined here allows the current tab to be updated
   chrome.tabs.update(undefined, { url });
 }
@@ -104,24 +82,27 @@ function onInputEntered(id) {
  * @param {URL} goURL URL to go to
  * @param {Boolean} newTab whether to reload the current tab or open a new tab
  */
-function redirectURLInput(goURL, newTab = false) {
+async function redirectURLInput(goURL, newTab = false) {
   console.log(`redirectURLInput`, goURL);
   // split the URL to get the id
   const id = goURL.startsWith(`https://`)
     ? goURL.split(`https://go/`)[1]
     : goURL.split(`http://go/`)[1];
   // get URL from the mapping
-  const url = idToURL(id);
+  const url = await idToURL(id);
   if (!newTab) {
     // find currently active tab and change the URL to the new one
     chrome.tabs.update(undefined, { url });
+  } else {
+    // open a new tab with the new URL
+    chrome.tabs.create({ url });
   }
 }
 
+// event listeners
+
 // Add listener for input changes
 chrome.omnibox.onInputEntered.addListener(onInputEntered);
-// Add listener for updating mapping
-chrome.action.onClicked.addListener(() => updateMapping(apiURL));
 
 // Add listener for direct http://go/ links
 chrome.webRequest.onBeforeRequest.addListener(
@@ -138,3 +119,21 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 
 // Start the update mapping alarm, every 60 minutes
 chrome.alarms.create("updateMapping", { periodInMinutes: 60, when: 0 });
+
+// Add listener to open settings page
+chrome.action.onClicked.addListener(() => {
+  console.log(`action.onClicked`);
+  chrome.tabs.create({
+    url: `chrome-extension://${chrome.runtime.id}/settings.html`,
+  });
+});
+
+// add listener for change in importURL
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
+    if (key === `importURL`) {
+      console.log(`Import URL was updated from ${oldValue} to ${newValue}`);
+      updateMapping();
+    }
+  }
+});

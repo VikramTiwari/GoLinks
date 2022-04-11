@@ -1,4 +1,4 @@
-# go/ Extension
+# go/links Extension
 
 ## How to use
 
@@ -13,29 +13,31 @@
 ### Get started
 
 - Install the extension from the [chrome webstore](https://chrome.google.com/webstore/detail/go/bfmaacheolcnmehidehnkdpkafmmjjld).
-- Type `go` and press tab. This will replace chrome's search bar with GoLinks search bar.
-- Now type `//<API_ENDPOINT>` to point to the API endpoint to be used.
+- Click on the extension icon to open the settings page.
+- Add your import URL here. Ensure that your import URL returns JSON data
 
 ### See all the shortcuts
 
 - Type `go` and press tab. This will replace chrome's search bar with GoLinks search bar.
-- Now type `//`. This will list all the shortcuts directly from the API server.
+- Now type `//`. This will list all the shortcuts directly from the import API.
 
 ## How to get the API endpoint
 
-The extension doesn't care how the API is hosted as long as it provides a single endpoint to get all the mappings. Take a look at the sample implementation of this in the [golinks-server project](https://github.com/VikramTiwari/golinks-server).
+The extension doesn't care how the API is hosted as long as it provides a single endpoint to get all the mappings. Take a look at the sample implementation of this in the [golinks-server project](https://github.com/VikramTiwari/golinks-server). Another simple implementation is to host the file on github and use the [`raw`](https://raw.githubusercontent.com/VikramTiwari/golinks-server/main/links.json) version of that URL as import URL. You can use any URL as long as it's a http/https URL and returns JSON data.
 
 ### Why is JSON endpoint not a part of this project?
 
-There are many considerations when building the source of data. In my opinion the biggest one is the debate between access and cost. As you want finer controls around access, the cost of the solution increases. For example, hosting a JSON file on Google Storage is very close to free. However, this reduces the ability for anyone in the team to easily add a new shortcut. If you want to provide that control, the best approach is to build an API which takes user input and saves in the database. Moreover, these change as more people join the teams and there might be need for finer controls, analytics etc.
+There are many considerations when building the source of data. In my opinion the biggest one is the debate between access and cost. As you want finer controls around access, the cost of the solution increases. For example, hosting a JSON file on GitHub or Google Storage is very close to free. However, this reduces the ability for others in the team to easily add a new shortcut. There are various ways to provide that control. In my opinion, the best approach would be to build an API which takes user input and saves in the database.
 
-Feel free to share what works for you and I will add links to such discussions/blog posts etc here so that others can benefit from it.
+Moreover, these mechanisms of access change as more people join the team. There might be need for finer controls, analytics etc. This project tries to stand away from those concerns and allow you to manage them the best way for your team.
+
+Please share what works for you and I will enrich this documentation. It might help others to design and build their systems.
 
 ---
 
 ## Contributions
 
-All contributions within the scope of this project are welcome! The suggested features and improvements will have to be part of the small scope of problems that this project is trying to solve.
+All contributions within the limtied scope of this project are welcome! The suggested features and improvements will have to be part of the small scope of problems that this project is trying to solve.
 
 This is not to deter anyone else who wants to expand the scope, it's just to maintain the sanity of maintainers. Open source is an amazing place and you are totally free to fork the project and modify it as you wish.
 
